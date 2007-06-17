@@ -3,12 +3,25 @@ use strict;
 
 use Test::More tests => 7;
 
-use lib 't/lib';
 use File::Basename ();
 use File::Find ();
 use File::Spec;
 use File::Temp;
-use YAML::Tiny (); # bundled in t/lib -- rjbs, 2007-06-13
+
+sub readpairsfile {
+  my ($filename) = @_;
+
+  my %datum;
+
+  open my $file, '<', $filename or die "couldn't open $filename: $!";
+  while (my $line = <$file>) {
+    chomp $line;
+    my ($key, $value) = $line =~ /^(.+)\s*:\s*(.+)/;
+    $datum{$key} = $value;
+  }
+
+  return \%datum;
+}
 
 use_ok('File::LinkTree::Builder');
 
@@ -20,15 +33,14 @@ my $metadata_getter = sub {
     qr{\.txt}i,
   );
 
-  my $yaml_file = File::Spec->catfile($path, "$name.yaml");
-  my $yaml = YAML::Tiny->read($yaml_file);
-  return $yaml->[0];
+  my $pairs_file = File::Spec->catfile($path, "$name.data");
+  my $pairs = readpairsfile($pairs_file);
 };
 
 my $tempdir = File::Temp::tempdir(CLEANUP => 1);
 
 File::LinkTree::Builder->build_tree({
-  storage_root    => File::Spec->catdir(qw(t storage)),
+  storage_root    => File::Spec->catdir(qw(eg storage)),
   file_filter     => sub { /\.txt\z/i },
   link_root       => $tempdir,
   metadata_getter => $metadata_getter,
@@ -54,7 +66,7 @@ sub ok_l {
   ok(-l $link, "$link exists as a symlink");
   is(
     readlink $link,
-    File::Spec->rel2abs($target, "t/storage"),
+    File::Spec->rel2abs($target, "eg/storage"),
     "...and points to correct target"
   );
 }
