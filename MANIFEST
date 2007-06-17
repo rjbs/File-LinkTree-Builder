@@ -1,4 +1,8 @@
 Changes
+eg/storage/christmas.data
+eg/storage/christmas.txt
+eg/storage/july-4.data
+eg/storage/july-4.txt
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
@@ -11,14 +15,8 @@ lib/File/LinkTree/Builder.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
-META.yml
 README
 t/build.t
-t/lib/YAML/Tiny.pm
 t/perl-critic.t
 t/pod-coverage.t
 t/pod.t
-t/storage/christmas.txt
-t/storage/christmas.yaml
-t/storage/july-4.txt
-t/storage/july-4.yaml
