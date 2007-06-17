@@ -15,7 +15,7 @@ File::LinkTree::Builder - builds a tree of symlinks based on file metadata
 
 =head1 VERSION
 
-version 0.002
+version 0.003
 
   $Id$
 
@@ -24,7 +24,7 @@ probably mostly around the iterator.  Rely on it at your own risk.
 
 =cut
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head1 SYNOPSIS
 
