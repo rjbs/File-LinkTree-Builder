@@ -1,0 +1,4 @@
+
+This module builds a tree of links to a tree of source files based on metadata
+about them.  For more information, see the module documentation.
+
