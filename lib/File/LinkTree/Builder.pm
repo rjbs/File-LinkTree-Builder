@@ -215,14 +215,12 @@ sub run {
 
       my $link = File::Spec->catfile($path, $basename);
       
-      my $link_from = 1 ? $abs_file : $filename;
-
       if ($self->hardlink) {
-        link $link_from => $link
-          or die "couldn't create link <$link> to <$link_from>: $!";
+        link $abs_file => $link
+          or die "couldn't create link <$link> to <$abs_file>: $!";
       } else {
-        symlink $link_from => $link
-          or die "couldn't create link <$link> to <$link_from>: $!";
+        symlink $abs_file => $link
+          or die "couldn't create link <$link> to <$abs_file>: $!";
       }
     }
   }
