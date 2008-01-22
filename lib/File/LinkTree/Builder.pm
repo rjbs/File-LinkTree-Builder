@@ -63,6 +63,8 @@ Valid arguments are:
   link_root       - this is a path in which the link trees will be built
   link_paths      - this is an arrayref of metadatum names to use; see below!
   hardlink        - if true, the link tree is hard, not symbolic, links
+  on_existing     - if 'skip' do not write links that already exist
+                    if 'die', go ahead and try, thus dying; default: 'die'
 
 =cut
 
@@ -82,6 +84,10 @@ C<L</build_tree>>, above.
 sub new {
   my ($class, $arg) = @_;
   $arg ||= {};
+
+  my $on_existing = $arg->{on_existing} || 'die';
+  die "invalid 'on_existing' argument"
+    unless $on_existing eq 'die' or $on_existing eq 'skip';
   
   die "only give storage_root or storage_roots, not both"
     if $arg->{storage_root} and $arg->{storage_roots};
@@ -102,11 +108,12 @@ sub new {
   Carp::croak "no file storage_root" unless $iterator;
 
   my $self = bless {
-    iterator  => $iterator,
+    iterator     => $iterator,
     link_paths   => $arg->{link_paths},
     storage_root => \@storage_roots,
     link_root    => $arg->{link_root} || '.',
     hardlink     => ! ! $arg->{hardlink},
+    on_existing  => $on_existing,
   } => $class;
 
   # It's set this way so that in a subclass that has one fixed method to get
@@ -195,7 +202,7 @@ file.
 sub run {
   my ($self) = @_;
 
-  while (my $filename = $self->iterator->()) {
+  FILE: while (my $filename = $self->iterator->()) {
     my $abs_file = File::Spec->rel2abs($filename, Cwd::getcwd);
     my $meta     = $self->metadata_for_file($abs_file);
     my $basename = File::Basename::basename($filename);
@@ -214,7 +221,9 @@ sub run {
       File::Path::mkpath($path);
 
       my $link = File::Spec->catfile($path, $basename);
-      
+
+      next FILE if -e $link and $self->_skip_existing_links;
+
       if ($self->hardlink) {
         link $abs_file => $link
           or die "couldn't create link <$link> to <$abs_file>: $!";
@@ -224,6 +233,11 @@ sub run {
       }
     }
   }
+}
+
+sub _skip_existing_links {
+  my ($self) = @_;
+  return 1 if $self->{on_existing} eq 'skip';
 }
 
 =head2 set_metadata_getter
