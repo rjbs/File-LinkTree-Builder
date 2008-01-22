@@ -1,5 +1,11 @@
 Changelog for File-LinkTree-Builder
 
+0.004     2007-06-17
+          POSSIBLY BREAKS YOUR CODE
+          storage_root (now storage_roots) can now be an arrayref
+          better determination of file's abs path
+
+
 0.003     2007-06-17
           fix META.yaml
           double-happy father's day!

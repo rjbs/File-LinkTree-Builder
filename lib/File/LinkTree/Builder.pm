@@ -4,6 +4,7 @@ use warnings;
 package File::LinkTree::Builder;
 
 use Carp ();
+use Cwd ();
 use File::Basename ();
 use File::Next;
 use File::Path ();
@@ -15,16 +16,14 @@ File::LinkTree::Builder - builds a tree of symlinks based on file metadata
 
 =head1 VERSION
 
-version 0.003
-
-  $Id$
+version 0.004
 
 B<ACHTUNG!>: This module is young.  The interface may yet change a little,
 probably mostly around the iterator.  Rely on it at your own risk.
 
 =cut
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 =head1 SYNOPSIS
 
@@ -58,6 +57,7 @@ storage root.  It is exactly equivalent to:
 Valid arguments are:
 
   storage_root    - this is a path in which to start looking for files
+                    can be an arrayref; can also be given as storage_roots
   file_filter     - this filters out unwanted files; see File::Next
   metadata_getter - this is a coderef that gets metadata; see below!
   link_root       - this is a path in which the link trees will be built
@@ -82,12 +82,21 @@ C<L</build_tree>>, above.
 sub new {
   my ($class, $arg) = @_;
   $arg ||= {};
+  
+  die "only give storage_root or storage_roots, not both"
+    if $arg->{storage_root} and $arg->{storage_roots};
+
+  $arg->{storage_root} = $arg->{storage_roots} if $arg->{storage_roots};
+
+  my @storage_roots = ref $arg->{storage_root}
+                    ? @{$arg->{storage_root}}
+                    : $arg->{storage_root};
 
   my $iterator = File::Next::files(
     {
       file_filter => $arg->{file_filter},
     },
-    $arg->{storage_root},
+    @storage_roots,
   );
 
   Carp::croak "no file storage_root" unless $iterator;
@@ -95,7 +104,7 @@ sub new {
   my $self = bless {
     iterator  => $iterator,
     link_paths   => $arg->{link_paths},
-    storage_root => $arg->{storage_root},
+    storage_root => \@storage_roots,
     link_root    => $arg->{link_root} || '.',
     hardlink     => ! ! $arg->{hardlink},
   } => $class;
@@ -124,14 +133,16 @@ sub metadata_for_file {
   Carp::croak "no metadata getter supplied";
 }
 
-=head2 storage_root
+=head2 storage_roots
 
 This method returns the path in which to start looking for files that the link
-tree will point to.
+tree will point to.  This can also be called as C<storage_root> for historical
+reasons.
 
 =cut
 
-sub storage_root { $_[0]->{storage_root} };
+sub storage_root  { @{ $_[0]->{storage_roots} } };
+sub storage_roots { @{ $_[0]->{storage_roots} } };
 
 =head2 link_root
 
@@ -185,9 +196,9 @@ sub run {
   my ($self) = @_;
 
   while (my $filename = $self->iterator->()) {
-    my $meta = $self->metadata_for_file($filename);
+    my $abs_file = File::Spec->rel2abs($filename, Cwd::getcwd);
+    my $meta     = $self->metadata_for_file($abs_file);
     my $basename = File::Basename::basename($filename);
-    my $abs_file = File::Spec->rel2abs($basename, $self->storage_root);
 
     for my $datapath ($self->link_paths) {
       my @path = map {
@@ -203,13 +214,15 @@ sub run {
       File::Path::mkpath($path);
 
       my $link = File::Spec->catfile($path, $basename);
+      
+      my $link_from = 1 ? $abs_file : $filename;
 
       if ($self->hardlink) {
-        link $abs_file => $link
-          or die "couldn't create link <$link> to <$abs_file>: $!";
+        link $link_from => $link
+          or die "couldn't create link <$link> to <$link_from>: $!";
       } else {
-        symlink $abs_file => $link
-          or die "couldn't create link <$link> to <$abs_file>: $!";
+        symlink $link_from => $link
+          or die "couldn't create link <$link> to <$link_from>: $!";
       }
     }
   }

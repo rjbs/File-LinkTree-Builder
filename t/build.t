@@ -40,7 +40,7 @@ my $metadata_getter = sub {
 my $tempdir = File::Temp::tempdir(CLEANUP => 1);
 
 File::LinkTree::Builder->build_tree({
-  storage_root    => File::Spec->catdir(qw(eg storage)),
+  storage_roots   => File::Spec->catdir(qw(eg storage)),
   file_filter     => sub { /\.txt\z/i },
   link_root       => $tempdir,
   metadata_getter => $metadata_getter,
