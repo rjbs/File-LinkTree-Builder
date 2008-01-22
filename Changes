@@ -5,6 +5,8 @@ Changelog for File-LinkTree-Builder
           storage_root (now storage_roots) can now be an arrayref
           better determination of file's abs path
 
+          added on_existing option
+
 
 0.003     2007-06-17
           fix META.yaml
