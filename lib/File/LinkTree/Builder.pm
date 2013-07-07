@@ -1,7 +1,7 @@
-
 use strict;
 use warnings;
 package File::LinkTree::Builder;
+# ABSTRACT: builds a tree of symlinks based on file metadata
 
 use Carp ();
 use Cwd ();
@@ -10,22 +10,10 @@ use File::Next;
 use File::Path ();
 use File::Spec;
 
-=head1 NAME
-
-File::LinkTree::Builder - builds a tree of symlinks based on file metadata
-
-=head1 VERSION
-
-version 0.004
+=head1 SYNOPSIS
 
 B<ACHTUNG!>: This module is young.  The interface may yet change a little,
 probably mostly around the iterator.  Rely on it at your own risk.
-
-=cut
-
-our $VERSION = '0.004';
-
-=head1 SYNOPSIS
 
 This module provides a way to build symlink trees.  Given a path to a set of
 files, a way to find file metadata, and a list of symlink paths to produce,
@@ -43,9 +31,7 @@ this module will build the symlink trees.
 
 =cut
 
-=head1 METHODS
-
-=head2 build_tree
+=method build_tree
 
   File::LinkTree::Builder->build_tree(\%arg);
 
@@ -73,7 +59,7 @@ sub build_tree {
   $self->new($arg)->run;
 }
 
-=head2 new
+=method new
 
 This method returns a new link tree builder, which exists primarily to have is
 C<L</run>> method called.  It accepts exactly the same arguments as
@@ -88,7 +74,7 @@ sub new {
   my $on_existing = $arg->{on_existing} || 'die';
   die "invalid 'on_existing' argument"
     unless $on_existing eq 'die' or $on_existing eq 'skip';
-  
+
   die "only give storage_root or storage_roots, not both"
     if $arg->{storage_root} and $arg->{storage_roots};
 
@@ -124,7 +110,7 @@ sub new {
   return $self;
 }
 
-=head2 metadata_for_file
+=method metadata_for_file
 
   my $hashref = $builder->metadata_for_file($filename);
 
@@ -140,7 +126,7 @@ sub metadata_for_file {
   Carp::croak "no metadata getter supplied";
 }
 
-=head2 storage_roots
+=method storage_roots
 
 This method returns the path in which to start looking for files that the link
 tree will point to.  This can also be called as C<storage_root> for historical
@@ -151,7 +137,7 @@ reasons.
 sub storage_root  { @{ $_[0]->{storage_roots} } };
 sub storage_roots { @{ $_[0]->{storage_roots} } };
 
-=head2 link_root
+=method link_root
 
 This method returns the path in which the link tree is to be built.
 
@@ -159,7 +145,7 @@ This method returns the path in which the link tree is to be built.
 
 sub link_root { $_[0]->{link_root} }
 
-=head2 iterator
+=method iterator
 
 This method returns an iterator which, when called as a coderef, returns the
 next file to process.
@@ -168,7 +154,7 @@ next file to process.
 
 sub iterator { $_[0]->{iterator} };
 
-=head2 link_paths
+=method link_paths
 
   my @paths = $link_paths;
 
@@ -183,7 +169,7 @@ sub link_paths {
   return @{ $self->{link_paths} };
 }
 
-=head2 hardlink
+=method hardlink
 
 This method returns true if we've been asked to produce hardlinks.
 
@@ -191,7 +177,7 @@ This method returns true if we've been asked to produce hardlinks.
 
 sub hardlink { $_[0]->{hardlink} }
 
-=head2 run
+=method run
 
 This method works through the iterator, building the needed symlinks for each
 file.
@@ -240,7 +226,7 @@ sub _skip_existing_links {
   return 1 if $self->{on_existing} eq 'skip';
 }
 
-=head2 set_metadata_getter
+=method set_metadata_getter
 
 This method is called during initialization to set the object's metadata
 getting routine.  It's provided as a method so that subclasses with fixed
@@ -259,21 +245,6 @@ This module needs a bunch of refactoring and probably some better thinking-out
 in general.
 
 Specifically, I'd like to make it easier to have relative symlinks.
-
-=head1 AUTHOR
-
-Ricardo SIGNES, C<< <rjbs@cpan.org> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>. I will be notified, and then you'll automatically be
-notified of progress on your bug as I make changes.
-
-=head1 COPYRIGHT
-
-Copyright 2007 Ricardo SIGNES.  This program is free software;  you can
-redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut
 

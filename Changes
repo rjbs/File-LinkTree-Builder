@@ -1,5 +1,8 @@
 Changelog for File-LinkTree-Builder
 
+{{$NEXT}}
+          just repackaged, updated bugtracker
+
 0.004     2007-06-17
           POSSIBLY BREAKS YOUR CODE
           storage_root (now storage_roots) can now be an arrayref
